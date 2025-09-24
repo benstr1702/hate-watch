@@ -1,6 +1,3 @@
-// Main File
-
-// Require the necessary discord.js classes
 const {
 	Client,
 	Events,
@@ -11,73 +8,81 @@ const {
 const fs = require("node:fs");
 const path = require("node:path");
 const dotenv = require("dotenv");
+const pollPlayer = require("./watcher.js");
 dotenv.config();
 
-// Create a new client instance
-const guildId = process.env.GUILD_ID;
+const trackedPlayers = require("./queue.js");
+const token = process.env.DISCORD_TOKEN;
+const apiKey = process.env.API_KEY;
+
+const BASE_URL = "https://api.clashroyale.com/v1/players/";
+
+// --- Helpers ---
+function encodeTag(tag) {
+	return `%23${tag.replace("#", "").toUpperCase()}`;
+}
+
+// --- Discord Setup ---
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
-const token = process.env.DISCORD_TOKEN;
+const boinChannelId = process.env.BOINGBOING_CHANNEL_ID;
+const jbChannelId = process.env.JB_CHANNEL_ID;
 
 const foldersPath = path.join(__dirname, "commands");
-console.log("foldersPath:", foldersPath);
-
-const commandFolders = fs.readdirSync(foldersPath);
-console.log("commandFolers:", commandFolders);
-
-for (const folder of commandFolders) {
+for (const folder of fs.readdirSync(foldersPath)) {
 	const commandsPath = path.join(foldersPath, folder);
-	const commandFiles = fs
+	for (const file of fs
 		.readdirSync(commandsPath)
-		.filter((file) => file.endsWith(".js"));
-	for (const file of commandFiles) {
-		const filePath = path.join(commandsPath, file);
-		const command = require(filePath);
-		// Set a new item in the Collection with the key as the command name and the value as the exported module
+		.filter((f) => f.endsWith(".js"))) {
+		const command = require(path.join(commandsPath, file));
 		if ("data" in command && "execute" in command) {
 			client.commands.set(command.data.name, command);
-		} else {
-			console.log(
-				`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`
-			);
 		}
 	}
 }
-// When the client is ready, run this code (only once).
-// The distinction between `client: Client<boolean>` and `readyClient: Client<true>` is important for TypeScript developers.
-// It makes some properties non-nullable.
-client.once(Events.ClientReady, (readyClient) => {
-	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+
+// --- Poll Loop ---
+async function pollLoop(channel) {
+	while (true) {
+		for (const tag in trackedPlayers) {
+			const nick = trackedPlayers[tag];
+			const newBattle = await pollPlayer(tag, nick);
+			if (newBattle) {
+				channel.send(
+					` <@&1416840325422518322> ${nick} has just played a **${newBattle.gameMode}** match! **AND ${newBattle.lostOrWon}** *${newBattle.score}* `
+				);
+			}
+			await new Promise((r) => setTimeout(r, 2000));
+		}
+		await new Promise((r) => setTimeout(r, 1 * 60 * 1000));
+	}
+}
+
+client.once(Events.ClientReady, async (readyClient) => {
+	console.log(`✅ Ready! Logged in as ${readyClient.user.tag}`);
+	const channel = await client.channels.fetch(boinChannelId);
+	channel.send("#NowHateWatching");
+	pollLoop(channel); // kick off polling in background
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
 	if (!interaction.isChatInputCommand()) return;
-
 	const command = interaction.client.commands.get(interaction.commandName);
-
-	if (!command) {
-		console.error(
-			`No command matching ${interaction.commandName} was found.`
-		);
-		return;
-	}
-
+	if (!command) return;
 	try {
 		await command.execute(interaction);
-	} catch (error) {
-		console.error(error);
+	} catch (err) {
+		console.error(err);
+		const reply = {
+			content: "There was an error while executing this command!",
+			flags: MessageFlags.Ephemeral,
+		};
 		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({
-				content: "There was an error while executing this command!",
-				flags: MessageFlags.Ephemeral,
-			});
+			await interaction.followUp(reply);
 		} else {
-			await interaction.reply({
-				content: "There was an error while executing this command!",
-				flags: MessageFlags.Ephemeral,
-			});
+			await interaction.reply(reply);
 		}
 	}
 });
-// Log in to Discord with your client's token
+
 client.login(token);

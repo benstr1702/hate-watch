@@ -1,5 +1,11 @@
 Hatewatch Bot (Clash Royale Discord Bot)
 
+
+### TODO
+
+[] External Deck builder stiched together & attached to the interaction response for /player
+
+
 ## Disclaimer
 
 This project is **unofficial** and is not endorsed, sponsored, or specifically approved by Supercell.  

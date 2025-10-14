@@ -44,23 +44,29 @@ for (const folder of fs.readdirSync(foldersPath)) {
 // --- Poll Loop ---
 async function pollLoop(channel) {
 	while (true) {
-		for (const tag in trackedPlayers) {
-			const nick = trackedPlayers[tag];
-			const newBattle = await pollPlayer(tag, nick);
-			if (newBattle) {
-				channel.send(
-					` <@&1416840325422518322> ${nick} has just played a **${newBattle.gameMode}** match! **AND ${newBattle.lostOrWon}** *${newBattle.score}* `
-				);
+		try {
+			for (const tag in trackedPlayers) {
+				const nick = trackedPlayers[tag];
+				const newBattle = await pollPlayer(tag, nick);
+				if (newBattle) {
+					await channel.send(
+						`<@762388297825124402> ${nick} played a **${newBattle.gameMode}** match! **${newBattle.lostOrWon}** *${newBattle.score}*`
+					);
+				}
+				await new Promise((r) => setTimeout(r, 2000));
 			}
-			await new Promise((r) => setTimeout(r, 2000));
+		} catch (err) {
+			console.error("Polling loop error:", err);
+			await new Promise((r) => setTimeout(r, 10_000)); // avoid crash loop
 		}
-		await new Promise((r) => setTimeout(r, 1 * 60 * 1000));
+		await new Promise((r) => setTimeout(r, 60_000));
 	}
 }
 
 client.once(Events.ClientReady, async (readyClient) => {
 	console.log(`✅ Ready! Logged in as ${readyClient.user.tag}`);
 	const channel = await client.channels.fetch(boinChannelId);
+	//const channel = await client.channels.fetch(jbChannelId);
 	channel.send("#NowHateWatching");
 	pollLoop(channel); // kick off polling in background
 });

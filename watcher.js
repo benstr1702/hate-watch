@@ -1,95 +1,3 @@
-//const apiKey = process.env.API_KEY;
-//const baseURL = `https://api.clashroyale.com/v1/players/`;
-//const fs = require("node:fs");
-
-//function encodeTag(tag) {
-//	return `%23${tag.replace("#", "").toUpperCase()}`;
-//}
-
-//async function pollPlayer(tag) {
-//	const res = await fetch(`${baseURL}${encodeTag(tag)}/battlelog`, {
-//		headers: { Authorization: `Bearer ${apiKey}` },
-//	});
-
-//	if (!res.ok) {
-//		const text = await res.text();
-//		throw new Error(`api error for ${tag} : ${res.status} ${text}`);
-//	}
-
-//	// get the battles
-//	const battles = await res.json();
-//	//get the last known battle
-//	const recentBattle = battles[0];
-//	const validModes = [72000006, 72000464];
-
-//	if (validModes.includes(recentBattle.gameMode.id)) {
-//		// this means the last battle is either ladder or ranked (both work)
-//		// now we need to check the timetamp and compare it to the timestamp saved in our db
-//		const timestamp = new Date(recentBattle.battleTime).toISOString();
-//		console.log("last timestamp:", timestamp);
-
-//		//example battleTime = "battleTime": "20250922T153747.000Z",
-//		// check if the file even exists
-//		if (!fs.existsSync("./lastBattleTimes.json")) {
-//			fs.writeFileSync(
-//				"./lastBattleTimes.json",
-//				JSON.stringify({}, null, 2)
-//			);
-//			console.log("json db created");
-//		} else {
-//			console.log("json db already exists");
-//		}
-//		// read the json db file
-//		const rawJsonDB = fs.readFileSync("./lastBattleTimes.json", "utf-8");
-//		const jsonDB = JSON.parse(rawJsonDB);
-
-//		if (!jsonDB.tracked) jsonDB.tracked = {};
-
-//		const player = jsonDB.tracked[tag];
-
-//		// json db should be made of player tags and their last match timestamp
-//		/**
-//		 * {
-//		 * 	"tracked": [
-//		 * 		 "#C890U22V" : {"name" : "benis" , "timestamp" : "2025-09-24T00:30:00Z" , "gamemode": "ranked"} ,
-//		 * 		"#C890U275J" : {"name" : "peemus" , "timestamp" : "2025-04-24T00:30:00Z" , "gamemode": "ladder"}
-//		 *    ]
-//		 * }
-//		 */
-
-//		if (player && player.timestamp === timestamp) {
-//			// this means the newest battle is the same as the one in the db
-//			// do nothing
-//			console.log(`${player.name}'s status remains unchanged.`);
-//			return null;
-//		} else if (player.timestamp < timestamp) {
-//			// update db
-//			player.timestamp = timestamp;
-
-//			// save changes
-//			fs.writeFileSync(
-//				"./lastBattleTimes.json",
-//				JSON.stringify(jsonDB, null, 2)
-//			);
-
-//			// return the announcement info
-//			return {
-//				tag,
-//				name: jsonDB.tracked[tag].name,
-//				gameMode:
-//					recentBattle.gameMode.id === 72000006 ? "Ladder" : "Ranked",
-//				timestamp,
-//			};
-//		} else {
-//			console.log(
-//				"smth weird is going on looks like the date in the db is more recent than the one he just played, look into it "
-//			);
-//		}
-//	}
-//}
-
-//module.exports = pollPlayer;
-
 const dotenv = require("dotenv");
 dotenv.config();
 const apiKey = process.env.API_KEY;
@@ -138,8 +46,20 @@ async function pollPlayer(tag, nick) {
 
 	let player = jsonDB.tracked[tag];
 	if (!player) {
-		player = { name: nick }; // <-- use the nickname here
+		player = { name: nick };
 		jsonDB.tracked[tag] = player;
+	}
+
+	const MIN_NOTIFICATION_INTERVAL = 10 * 60 * 1000;
+	if (player.lastNotified) {
+		const lastNotifiedTime = new Date(player.lastNotified);
+		const currentTime = new Date(timestamp);
+		if (currentTime - lastNotifiedTime < MIN_NOTIFICATION_INTERVAL) {
+			console.log(
+				`${player.name} battle too recent, skipping notification.`
+			);
+			return null;
+		}
 	}
 	// --- Detect new battle ---
 	if (player && player.timestamp === timestamp) {
@@ -151,6 +71,7 @@ async function pollPlayer(tag, nick) {
 	player.timestamp = timestamp;
 	player.gameMode =
 		recentBattle.gameMode.id === 72000006 ? "Ladder" : "Ranked";
+	player.lastNotified = timestamp;
 
 	// save DB
 	fs.writeFileSync(dbPath, JSON.stringify(jsonDB, null, 2));

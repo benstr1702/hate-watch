@@ -19,17 +19,40 @@ for (const folder of commandFolders) {
 		.readdirSync(commandsPath)
 		.filter((file) => file.endsWith(".js"));
 	// Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
+	//for (const file of commandFiles) {
+	//	const filePath = path.join(commandsPath, file);
+	//	const command = require(filePath);
+	//	console.log("Scanning command folders:", fs.readdirSync(foldersPath));
+
+	//	if ("data" in command && "execute" in command) {
+	//		if (command.public !== false) {
+	//			console.log("command is public");
+	//			commands.push(command.data.toJSON());
+	//		}
+	//	} else {
+	//		console.log(
+	//			`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`
+	//		);
+	//	}
+	//}
 	for (const file of commandFiles) {
 		const filePath = path.join(commandsPath, file);
-		const command = require(filePath);
-		if ("data" in command && "execute" in command) {
-			if (command.public !== false) {
-				commands.push(command.data.toJSON());
+		try {
+			const command = require(filePath);
+			console.log(`Loaded command file: ${filePath}`);
+
+			if ("data" in command && "execute" in command) {
+				if (command.public !== false) {
+					console.log(`✅ Registered command: ${command.data.name}`);
+					commands.push(command.data.toJSON());
+				}
+			} else {
+				console.log(
+					`[WARNING] The command at ${filePath} is missing "data" or "execute".`
+				);
 			}
-		} else {
-			console.log(
-				`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`
-			);
+		} catch (err) {
+			console.error(`❌ Error loading ${filePath}:`, err);
 		}
 	}
 }

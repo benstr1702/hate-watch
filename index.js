@@ -25,7 +25,7 @@ function encodeTag(tag) {
 // --- Discord Setup ---
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
-const boinChannelId = process.env.BOINGBOING_CHANNEL_ID;
+//const boinChannelId = process.env.BOINGBOING_CHANNEL_ID;
 const jbChannelId = process.env.JB_CHANNEL_ID;
 
 const foldersPath = path.join(__dirname, "commands");
@@ -50,14 +50,48 @@ async function pollLoop(channel) {
 				const newBattle = await pollPlayer(tag, nick);
 				if (newBattle) {
 					// always announce the battle
-					let msg = `${newBattle.name} played a **${newBattle.gameMode}** match! **${newBattle.lostOrWon}** *${newBattle.score}*`;
+					let msg = `${nick} played a **${newBattle.gameMode}** match! **${newBattle.lostOrWon}** *${newBattle.score}*`;
 
-					if (Number.isFinite(newBattle.trophyChange)) {
+					if (newBattle.trophyChange) {
 						msg += ` | ${newBattle.trophyChange} 🏆`;
 					}
 					// ping only if 10 minutes passed
 					if (newBattle.shouldNotify) {
-						msg = `<@762388297825124402> ` + msg;
+						let mention = "";
+						//msg = `<@762388297825124402> ` + msg;
+						switch (nick) {
+							case "Peemus":
+								mention = `<@&1428112134121721917>`;
+								break;
+							case "Benis":
+								mention = `<@&1428112405053051035>`;
+								break;
+							case "Niggey":
+								mention = `<@&1428112345582014655>`;
+								break;
+							case "Maj":
+								mention = `<@&1428112576721584281>`;
+								break;
+							case "Sena":
+								mention = `<@&1428112458719166555>`;
+								break;
+							case "Dev":
+								mention = `<@&1428112500951486597>`;
+								break;
+							case "Rebel":
+								mention = `<@&1428112981673246751>`;
+								break;
+							case "Ace":
+								mention = `<@&1428112891378143292>`;
+								break;
+							case "Brockor":
+								mention = `<@&1428112659181469878>`;
+								break;
+							default:
+								mention = `<@&1416840325422518322>`;
+								break;
+						}
+						msg = mention + " " + msg;
 					}
 
 					await channel.send(msg);
@@ -75,8 +109,8 @@ async function pollLoop(channel) {
 
 client.once(Events.ClientReady, async (readyClient) => {
 	console.log(`✅ Ready! Logged in as ${readyClient.user.tag}`);
-	const channel = await client.channels.fetch(boinChannelId);
-	//const channel = await client.channels.fetch(jbChannelId);
+	//const channel = await client.channels.fetch(boinChannelId);
+	const channel = await client.channels.fetch(jbChannelId);
 	channel.send("#NowHateWatching");
 	pollLoop(channel); // kick off polling in background
 });

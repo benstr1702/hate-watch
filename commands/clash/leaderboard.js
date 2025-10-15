@@ -34,9 +34,41 @@ module.exports = {
 				}
 
 				const player = await res.json();
+
+				let displayedTrophies = player.trophies;
+				let rankLabel = "";
+
+				// Fallback to Path of Legends if ladder cap reached
+				if (
+					player.trophies >= 10000 &&
+					player.currentPathOfLegendSeasonResult
+				) {
+					const pol = player.currentPathOfLegendSeasonResult;
+
+					const leagues = {
+						1: "Master I",
+						2: "Master II",
+						3: "Master III",
+						4: "Champion",
+						5: "Grand Champion",
+						6: "Royal Champion",
+						7: "Ultimate Champion",
+					};
+
+					const leagueName =
+						leagues[pol.leagueNumber] ||
+						`League ${pol.leagueNumber}`;
+					const polTrophies = pol.trophies || 0;
+					const polRank = pol.rank ? ` #${pol.rank}` : "";
+
+					rankLabel = `${leagueName} (${polTrophies} PoL${polRank})`;
+					displayedTrophies = `10,000+ — ${rankLabel}`;
+				}
+
 				results.push({
 					name: nick,
 					trophies: player.trophies,
+					displayedTrophies,
 					bestTrophies: player.bestTrophies,
 				});
 			}

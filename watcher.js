@@ -51,6 +51,7 @@ async function pollPlayer(tag, nick) {
 	}
 
 	const MIN_NOTIFICATION_INTERVAL = 10 * 60 * 1000;
+	let shouldNotify = true;
 	if (player.lastNotified) {
 		const lastNotifiedTime = new Date(player.lastNotified);
 		const currentTime = new Date(timestamp);
@@ -58,7 +59,7 @@ async function pollPlayer(tag, nick) {
 			console.log(
 				`${player.name} battle too recent, skipping notification.`
 			);
-			return null;
+			shouldNotify = false;
 		}
 	}
 	// --- Detect new battle ---
@@ -71,8 +72,10 @@ async function pollPlayer(tag, nick) {
 	player.timestamp = timestamp;
 	player.gameMode =
 		recentBattle.gameMode.id === 72000006 ? "Ladder" : "Ranked";
-	player.lastNotified = timestamp;
 
+	if (shouldNotify) {
+		player.lastNotified = timestamp;
+	}
 	// save DB
 	fs.writeFileSync(dbPath, JSON.stringify(jsonDB, null, 2));
 
@@ -84,6 +87,9 @@ async function pollPlayer(tag, nick) {
 			: "TIED";
 
 	const score = `${recentBattle.team[0].crowns} - ${recentBattle.opponent[0].crowns}`;
+	const trophyChange = Number.isFinite(recentBattle.team[0].trophyChange)
+		? recentBattle.team[0].trophyChange
+		: undefined;
 	// return info for announcements
 	return {
 		tag,
@@ -92,6 +98,8 @@ async function pollPlayer(tag, nick) {
 		timestamp,
 		lostOrWon,
 		score,
+		...(trophyChange !== undefined && { trophyChange }),
+		shouldNotify,
 	};
 }
 

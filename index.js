@@ -49,10 +49,20 @@ async function pollLoop(channel) {
 				const nick = trackedPlayers[tag];
 				const newBattle = await pollPlayer(tag, nick);
 				if (newBattle) {
-					await channel.send(
-						`<@762388297825124402> ${nick} played a **${newBattle.gameMode}** match! **${newBattle.lostOrWon}** *${newBattle.score}*`
-					);
+					// always announce the battle
+					let msg = `${newBattle.name} played a **${newBattle.gameMode}** match! **${newBattle.lostOrWon}** *${newBattle.score}*`;
+
+					if (Number.isFinite(newBattle.trophyChange)) {
+						msg += ` | ${newBattle.trophyChange} 🏆`;
+					}
+					// ping only if 10 minutes passed
+					if (newBattle.shouldNotify) {
+						msg = `<@762388297825124402> ` + msg;
+					}
+
+					await channel.send(msg);
 				}
+
 				await new Promise((r) => setTimeout(r, 2000));
 			}
 		} catch (err) {

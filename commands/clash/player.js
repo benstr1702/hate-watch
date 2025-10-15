@@ -26,6 +26,17 @@ function sanitizeTag(input) {
 	return tag;
 }
 
+function adjustCardLevels(rarity, level) {
+	const adjustment = {
+		common: 0,
+		rare: 2,
+		epic: 5,
+		legendary: 8,
+		champion: 10,
+	};
+	return level + (adjustment[rarity] || 0);
+}
+
 //// Example usage
 //const rawTag = "#o2qL9cgy";
 //const safeTag = sanitizeTag(rawTag);
@@ -76,7 +87,10 @@ module.exports = {
 			const deckString = player.currentDeck
 				.map(
 					(card) =>
-						`**${card.name}** (Lvl ${card.level}) | Elixir: ${card.elixirCost}`
+						`**${card.name}** (Lvl ${adjustCardLevels(
+							card.rarity,
+							card.level
+						)}) | Elixir: ${card.elixirCost}`
 				)
 				.join("\n");
 

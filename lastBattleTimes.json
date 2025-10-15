@@ -20,15 +20,27 @@
     },
     "#9GG0JLVJ": {
       "name": "Maj",
-      "timestamp": "2025-10-13T22:35:01.000Z",
+      "timestamp": "2025-10-15T22:22:30.000Z",
       "gameMode": "Ladder",
-      "lastNotified": "2025-10-13T22:35:01.000Z"
+      "lastNotified": "2025-10-15T22:13:29.000Z"
     },
     "#QY090G0YG": {
       "name": "Dev",
-      "timestamp": "2025-10-14T20:50:17.000Z",
+      "timestamp": "2025-10-15T18:57:29.000Z",
       "gameMode": "Ladder",
-      "lastNotified": "2025-10-14T20:50:17.000Z"
+      "lastNotified": "2025-10-15T18:57:29.000Z"
+    },
+    "#Y9CV9RUJL": {
+      "name": "Ace",
+      "timestamp": "2025-10-15T17:54:02.000Z",
+      "gameMode": "Ladder",
+      "lastNotified": "2025-10-15T17:54:02.000Z"
+    },
+    "#V8CJ2JPPY": {
+      "name": "Brockor",
+      "timestamp": "2025-10-15T17:55:56.000Z",
+      "gameMode": "Ladder",
+      "lastNotified": "2025-10-15T17:55:56.000Z"
     }
   }
 }

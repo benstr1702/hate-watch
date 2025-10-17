@@ -29,7 +29,7 @@ async function pollPlayer(tag, nick) {
 
 	const battles = await res.json();
 	const recentBattle = battles[0];
-	const validModes = [72000006, 72000464];
+	const validModes = [72000006, 72000450];
 
 	if (!validModes.includes(recentBattle.gameMode.id)) return null;
 	const timestamp = parseBattleTime(recentBattle.battleTime).toISOString();

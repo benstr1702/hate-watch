@@ -1,3 +1,10 @@
+/**
+ * Command to show the last 25 match record (WIN / LOSS)
+ * gets tag / user object
+ * Only for ranked / ladder
+ * if no ladder / ranked matches in the past 25 , A message displaying "No Ladder / Ranked matches in the past 25."
+ */
+
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -33,27 +40,10 @@ function sanitizeTag(input) {
 	return tag; // Returns tag without '#'
 }
 
-/**
- * Adjusts the card level based on its rarity for display purposes (e.g., max level 15).
- */
-function adjustCardLevels(rarity, level) {
-	const adjustment = {
-		common: 0,
-		rare: 2,
-		epic: 5,
-		legendary: 8,
-		champion: 10,
-	};
-	// Assuming the API returns the base level (e.g., 1-15 scale, or old scale),
-	// this function seems designed to normalize or adjust it.
-	// We'll keep the original logic but recognize this might be based on an outdated API structure.
-	return level + (adjustment[rarity] || 0);
-}
-
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName("player")
-		.setDescription("replies with clash royale player profile")
+		.setName("record")
+		.setDescription("displays last 25 matches record (win/loss)")
 		.addStringOption((option) =>
 			option
 				.setName("tag")
@@ -63,7 +53,7 @@ module.exports = {
 		.addUserOption((option) =>
 			option
 				.setName("user")
-				.setDescription("The Discord user whose linked account to view")
+				.setDescription("The Discord user whose record to view")
 				.setRequired(false)
 		),
 
@@ -76,12 +66,11 @@ module.exports = {
 		let finalTagForAPI;
 		let tagSource;
 
+		// --- TAG RESOLUTION LOGIC ---
 		if (inputTag) {
-			// Case 1: Tag was provided - use it directly
 			finalTagForAPI = sanitizeTag(inputTag);
 			tagSource = "manual tag";
 		} else if (inputUser || !inputTag) {
-			// Case 2: No tag provided. Use the specified user or default to the interaction user.
 			const userToLookup = inputUser || interaction.user;
 			tagSource = `linked to ${userToLookup.username}`;
 
@@ -91,7 +80,7 @@ module.exports = {
 					db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
 				}
 			} catch (error) {
-				console.error("DB read error in player command:", error);
+				console.error("DB read error in record command:", error);
 				return interaction.followUp({
 					content: "❌ Database error during link lookup.",
 					ephemeral: true,
@@ -99,7 +88,7 @@ module.exports = {
 			}
 
 			const tracked = db.tracked || {};
-			let foundDbKey = null; // This will hold the key (e.g., "#C890U22V")
+			let foundDbKey = null;
 
 			// Iterate through tracked players to find a match for the Discord ID
 			for (const tagKey in tracked) {
@@ -110,22 +99,13 @@ module.exports = {
 			}
 
 			if (!foundDbKey) {
-				// User not linked
 				return interaction.followUp({
 					content: `❌ Discord user **${userToLookup.username}** does not have a Clash Royale tag linked. Please use \`/link\` first or provide a tag directly.`,
 					ephemeral: true,
 				});
 			}
 
-			// foundDbKey is e.g. "#C890U22V". SanitizeTag removes the '#'.
 			finalTagForAPI = sanitizeTag(foundDbKey);
-		} else {
-			// Should not be reachable with current option structure, but good for safety
-			return interaction.followUp({
-				content:
-					"❌ You must provide a Clash Royale tag or specify a linked Discord user.",
-				ephemeral: true,
-			});
 		}
 
 		if (!finalTagForAPI) {
@@ -135,78 +115,106 @@ module.exports = {
 				ephemeral: true,
 			});
 		}
+		// -----------------------------
 
 		try {
 			// The API requires the tag to be URL encoded (%23 for #)
 			const encodedTag = `%23${finalTagForAPI}`;
 
-			const res = await fetch(`${BASE_URL}${encodedTag}`, {
+			// --- SINGLE API Call: Get Battle Log (Contains Player Info) ---
+			const logRes = await fetch(`${BASE_URL}${encodedTag}/battlelog`, {
 				headers: { Authorization: `Bearer ${API_KEY}` },
 			});
 
-			if (!res.ok) {
-				const text = await res.text();
-				// Check for known "not found" error
-				if (res.status === 404) {
+			if (!logRes.ok) {
+				const text = await logRes.text();
+				if (logRes.status === 404) {
 					throw new Error(
 						`Clash Royale Player Tag (${finalTagForAPI}) not found.`
 					);
 				}
-				throw new Error(`API error: ${res.status} ${text}`);
+				throw new Error(`API error: ${logRes.status} ${text}`);
 			}
 
-			const player = await res.json();
-			console.log(player);
+			const log = await logRes.json();
 
-			// DECK
-			const deckString = player.currentDeck
-				.map(
-					(card) =>
-						`**${card.name}** (Lvl ${adjustCardLevels(
-							card.rarity,
-							card.level
-						)}) | Elixir: ${card.elixirCost}`
-				)
-				.join("\n");
+			if (!log || log.length === 0) {
+				return interaction.followUp({
+					content: `⚠️ No battle log data found for tag \`#${finalTagForAPI}\`. The player may be new or inactive.`,
+					ephemeral: true,
+				});
+			}
+
+			// Extract player details from the first battle log entry (most recent)
+			const playerDetails = log[0].team?.[0];
+			if (!playerDetails) {
+				return interaction.followUp({
+					content: `⚠️ Could not identify player details from the battle log for tag \`#${finalTagForAPI}\`.`,
+					ephemeral: true,
+				});
+			}
+
+			const playerName = playerDetails.name;
+			const playerTag = playerDetails.tag;
+			const playerClan = playerDetails.clan?.name || "No Clan";
+			// --- End Player Info Extraction ---
+
+			let winCounter = 0;
+			let lossCounter = 0;
+			let drawCounter = 0;
+			let rankedMatchCounter = 0;
+
+			// Match criteria: Official Ladder (72000006) or Ranked 1v1 (72000450)
+			for (const match of log) {
+				const isLadder =
+					match.gameMode.id === 72000006 &&
+					match.gameMode.name.includes("Ladder");
+				const isRanked =
+					match.gameMode.id === 72000450 &&
+					match.gameMode.name.includes("Ranked");
+
+				if (isLadder || isRanked) {
+					// We assume 1v1 battles for ladder/ranked, hence checking team[0] vs opponent[0]
+					const teamCrowns = match.team?.[0]?.crowns || 0;
+					const opponentCrowns = match.opponent?.[0]?.crowns || 0;
+
+					rankedMatchCounter++;
+
+					if (teamCrowns > opponentCrowns) {
+						winCounter++;
+					} else if (teamCrowns < opponentCrowns) {
+						lossCounter++;
+					} else {
+						drawCounter++;
+					}
+				}
+			}
+
+			// --- Embed Generation ---
+			let recordString;
+			if (rankedMatchCounter === 0) {
+				recordString = "No Ladder/Ranked matches in the past 25.";
+			} else {
+				recordString = `W: **${winCounter}** | L: **${lossCounter}** | D: **${drawCounter}**`;
+			}
 
 			const embed = new EmbedBuilder()
 				.setColor(0x0099ff)
-				.setTitle(`${player.name} (${player.tag})`)
-				.setDescription(`Clan: ${player.clan?.name || "No Clan"}`)
-				.addFields(
-					{
-						name: "Level",
-						value: `${player.expLevel}`,
-						inline: true,
-					},
-					{
-						name: "Trophies",
-						value: `${player.trophies}`,
-						inline: true,
-					},
-					{
-						name: "Best Trophies",
-						value: `${player.bestTrophies}`,
-						inline: true,
-					},
-					{ name: "Wins", value: `${player.wins}`, inline: true },
-					{ name: "Losses", value: `${player.losses}`, inline: true },
-					{
-						name: "3 Crown Wins",
-						value: `${player.threeCrownWins}`,
-						inline: true,
-					},
-					{ name: "Current Deck", value: deckString }
-				)
+				.setTitle(`${playerName} (${playerTag})`)
+				.setDescription(`Clan: ${playerClan}`)
+				.addFields({
+					name: `Competitive 1v1 Record (Last ${log.length} Battles)`,
+					value: recordString,
+				})
 				.setFooter({
 					text: `Source: ${tagSource} | Clash Royale Hatewatch Bot`,
 				});
 
 			await interaction.followUp({ embeds: [embed] });
 		} catch (error) {
-			console.error(error);
+			console.error(`Record command execution error:`, error);
 			await interaction.followUp({
-				content: `Failed to fetch player info: ${
+				content: `❌ Failed to retrieve match record: ${
 					error.message || "An unknown error occurred."
 				}`,
 				ephemeral: true,

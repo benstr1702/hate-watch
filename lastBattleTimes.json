@@ -1,46 +1,73 @@
 {
-  "tracked": {
-    "#C890U22V": {
-      "name": "Benis",
-      "timestamp": "2025-09-24T12:40:41.000Z",
-      "gameMode": "Ladder",
-      "lastNotified": "2025-09-24T12:40:41.000Z"
-    },
-    "#JVQGQLR8R": {
-      "name": "Nigey",
-      "timestamp": "2025-10-14T19:44:19.000Z",
-      "gameMode": "Ladder",
-      "lastNotified": "2025-10-14T19:44:19.000Z"
-    },
-    "#R8YQR0V9R": {
-      "name": "Sena",
-      "timestamp": "2025-09-24T15:10:53.000Z",
-      "gameMode": "Ladder",
-      "lastNotified": "2025-09-24T15:10:53.000Z"
-    },
-    "#9GG0JLVJ": {
-      "name": "Maj",
-      "timestamp": "2025-10-15T22:22:30.000Z",
-      "gameMode": "Ladder",
-      "lastNotified": "2025-10-15T22:13:29.000Z"
-    },
-    "#QY090G0YG": {
-      "name": "Dev",
-      "timestamp": "2025-10-15T18:57:29.000Z",
-      "gameMode": "Ladder",
-      "lastNotified": "2025-10-15T18:57:29.000Z"
-    },
-    "#Y9CV9RUJL": {
-      "name": "Ace",
-      "timestamp": "2025-10-15T17:54:02.000Z",
-      "gameMode": "Ladder",
-      "lastNotified": "2025-10-15T17:54:02.000Z"
-    },
-    "#V8CJ2JPPY": {
-      "name": "Brockor",
-      "timestamp": "2025-10-15T17:55:56.000Z",
-      "gameMode": "Ladder",
-      "lastNotified": "2025-10-15T17:55:56.000Z"
+    "tracked": {
+        "#JVQGQLR8R": {
+            "timestamp": "2025-10-14T19:44:19.000Z",
+            "gameMode": "Ladder",
+            "lastNotified": "2025-10-14T19:44:19.000Z",
+            "discordId": "984912239817547846",
+            "name": "something1629",
+            "player": {
+                "name": "PromethazineUna"
+            }
+        },
+        "#R8YQR0V9R": {
+            "name": "4shawnn",
+            "discordId": "1243387605798879324",
+            "player": {
+                "name": "faygo"
+            },
+            "timestamp": "2025-09-24T15:10:53.000Z",
+            "gameMode": "Ladder",
+            "lastNotified": "2025-09-24T15:10:53.000Z"
+        },
+        "#9GG0JLVJ": {
+            "name": "Maj",
+            "timestamp": "2025-10-18T22:59:02.000Z",
+            "gameMode": "Ladder",
+            "lastNotified": "2025-10-18T22:59:02.000Z"
+        },
+        "#QY090G0YG": {
+            "name": "marit1me",
+            "timestamp": "2025-10-18T17:31:06.000Z",
+            "gameMode": "Ladder",
+            "lastNotified": "2025-10-18T17:31:06.000Z",
+            "discordId": "214476053626880002",
+            "player": {
+                "name": "Dev"
+            }
+        },
+        "#Y9CV9RUJL": {
+            "name": "Ace",
+            "timestamp": "2025-10-17T21:03:30.000Z",
+            "gameMode": "Ladder",
+            "lastNotified": "2025-10-17T21:03:30.000Z"
+        },
+        "#V8CJ2JPPY": {
+            "name": "wrockor",
+            "timestamp": "2025-10-16T19:22:01.000Z",
+            "gameMode": "Ladder",
+            "lastNotified": "2025-10-16T19:22:01.000Z",
+            "discordId": "1416501242766561322",
+            "player": {
+                "name": "Brockor"
+            }
+        },
+        "#C890U22V": {
+            "name": "benisnt",
+            "discordId": "762388297825124402",
+            "player": {
+                "name": "benis"
+            },
+            "timestamp": "2025-10-18T19:55:24.000Z",
+            "gameMode": "Ladder",
+            "lastNotified": "2025-10-18T19:55:24.000Z"
+        },
+        "#V0GJRGV0Q": {
+            "name": "not.remus",
+            "discordId": "1258569815639982227",
+            "player": {
+                "name": "pigmus"
+            }
+        }
     }
-  }
 }

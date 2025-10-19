@@ -10,6 +10,7 @@ const commands = [];
 // Grab all the command folders from the commands directory you created earlier
 const foldersPath = path.join(__dirname, "commands");
 const commandFolders = fs.readdirSync(foldersPath);
+//const guildId = process.env.BOIN_GUILD_ID;
 const guildId = process.env.GUILD_ID;
 
 for (const folder of commandFolders) {

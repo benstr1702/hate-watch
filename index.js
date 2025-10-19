@@ -18,14 +18,11 @@ const apiKey = process.env.API_KEY;
 const BASE_URL = "https://api.clashroyale.com/v1/players/";
 
 // --- Helpers ---
-function encodeTag(tag) {
-	return `%23${tag.replace("#", "").toUpperCase()}`;
-}
 
 // --- Discord Setup ---
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 client.commands = new Collection();
-//const boinChannelId = process.env.BOINGBOING_CHANNEL_ID;
+const boinChannelId = process.env.BOINGBOING_CHANNEL_ID;
 const jbChannelId = process.env.JB_CHANNEL_ID;
 
 const foldersPath = path.join(__dirname, "commands");

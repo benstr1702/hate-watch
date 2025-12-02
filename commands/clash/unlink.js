@@ -9,7 +9,6 @@ const path = require("node:path");
 
 const dbPath = path.join(__dirname, "../../lastBattleTimes.json");
 
-// --- Standardized Tag Sanitization (Copied from link.js) ---
 // Ensures that the tag used for DB lookup is always in the consistent '#TAG' format.
 function sanitizeTag(input) {
 	if (!input) return null;

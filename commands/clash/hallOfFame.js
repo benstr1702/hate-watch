@@ -24,15 +24,15 @@ module.exports = {
 				},
 
 				{
-					name: "9. Sena struggles to get a single win in 10 games",
+					name: "4. Sena struggles to get a single win in 10 games",
 					value: "https://discord.com/channels/1258477556110200833/1258587331326382080/1416633398067331274",
 				},
 				{
-					name: "4. Ace goes on a midnight walk to prepare mentally for his match",
+					name: "5. Ace goes on a midnight walk to prepare mentally for his match",
 					value: "https://discord.com/channels/1258477556110200833/1258587331326382080/1440120089708986448",
 				},
 				{
-					name: "5. bagshawties last minute sub",
+					name: "6. bagshawties last minute sub",
 					value: "https://discord.com/channels/1258477556110200833/1258587331326382080/1439335631175159971",
 				}
 			)

@@ -170,7 +170,7 @@ module.exports = {
 					match.gameMode.id === 72000006 &&
 					match.gameMode.name.includes("Ladder");
 				const isRanked =
-					match.gameMode.id === 72000464 &&
+					match.gameMode.id === 72000450 &&
 					match.gameMode.name.includes("Ranked");
 
 				if (isLadder || isRanked) {

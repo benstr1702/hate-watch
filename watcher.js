@@ -46,7 +46,7 @@ function updateTiltBucket(player, result) {
 	}
 }
 
-async function pollPlayer(tag, nick) {
+async function pollPlayer(tag, nick, discordId) {
 	const res = await fetch(`${baseURL}${encodeTag(tag)}/battlelog`, {
 		headers: { Authorization: `Bearer ${apiKey}` },
 	});
@@ -75,9 +75,15 @@ async function pollPlayer(tag, nick) {
 
 	let player = jsonDB.tracked[tag];
 	if (!player) {
-		player = { name: nick, tilt: { tokens: 0, lastUpdate: 0 } };
+		player = {
+			name: nick,
+			discordId, // FIX
+			tilt: { tokens: 0, lastUpdate: 0 },
+		};
 		jsonDB.tracked[tag] = player;
 	}
+	player.discordId = discordId;
+
 	if (!player.tilt) player.tilt = { tokens: 0, lastUpdate: 0 };
 	const MIN_NOTIFICATION_INTERVAL = 10 * 60 * 1000;
 	let shouldNotify = true;
@@ -119,7 +125,7 @@ async function pollPlayer(tag, nick) {
 		: undefined;
 	// return info for announcements
 	updateTiltBucket(player, lostOrWon);
-	const tiltMsg = checkTiltMessages(player, player.discordId);
+	const tiltMsg = checkTiltMessages(player, discordId);
 	// save DB
 	fs.writeFileSync(dbPath, JSON.stringify(jsonDB, null, 2));
 

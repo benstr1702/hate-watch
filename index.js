@@ -4,6 +4,7 @@ const {
 	GatewayIntentBits,
 	Collection,
 	MessageFlags,
+	roleMention,
 } = require("discord.js");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -70,6 +71,7 @@ async function pollLoop(channel) {
 						msg += ` | ${newBattle.trophyChange} 🏆`;
 					}
 					let tiltMsg = null;
+					let roleMention = "";
 					if (newBattle.tilt.tokens === 3)
 						tiltMsg = `${userMention} hey… 3 losses? maybe take a break 😭`;
 					else if (newBattle.tilt.tokens === 6)
@@ -78,10 +80,43 @@ async function pollLoop(channel) {
 						tiltMsg = `${userMention} https://media1.tenor.com/m/IzOuqn6WwSMAAAAd/jamie-carragher-football-meme.gif`;
 
 					// ping only if 10 minutes passed
+					switch (nick) {
+						case "Peemus":
+							roleMention = `<@&1428112134121721917>`;
+							break;
+						case "Benis":
+							roleMention = `<@&1428112405053051035>`;
+							break;
+						case "Niggey":
+							roleMention = `<@&1428112345582014655>`;
+							break;
+						case "Maj":
+							roleMention = `<@&1428112576721584281>`;
+							break;
+						case "Sena":
+							roleMention = `<@&1428112458719166555>`;
+							break;
+						case "Dev":
+							roleMention = `<@&1428112500951486597>`;
+							break;
+						case "Rebel":
+							roleMention = `<@&1428112981673246751>`;
+							break;
+						case "Ace":
+							roleMention = `<@&1428112891378143292>`;
+							break;
+						case "Brockor":
+							roleMention = `<@&1428112659181469878>`;
+							break;
+						default:
+							roleMention = `<@&1416840325422518322>`;
+							break;
+					}
+
 					if (newBattle.shouldNotify) {
 						//msg = `<@762388297825124402> ` + msg;
 
-						msg = userMention + " " + msg;
+						msg = roleMention + " " + msg;
 					}
 
 					await channel.send(msg);

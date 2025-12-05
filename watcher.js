@@ -17,6 +17,35 @@ function parseBattleTime(battleTime) {
 	);
 	return new Date(fixed);
 }
+
+function checkTiltMessages(player, discordId) {
+	const tokens = player.tilt.tokens;
+	const userMention = `<@${discordId}>`;
+
+	if (tokens === 3)
+		return `${userMention} brother bear... 3 losses? maybe take a break 😭`;
+	if (tokens === 6) return `${userMention} 6 losses? put the phone down.`;
+	if (tokens === 10)
+		return `${userMention} https://tenor.com/view/jamie-carragher-football-meme-leave-the-football-before-it-leaves-you-too-far-gone-it-cant-go-on-like-this-gif-2536563062431203619`;
+	return null;
+}
+
+function updateTiltBucket(player, result) {
+	const tilt = player.tilt;
+
+	if (result === "WON") {
+		// Win = hard reset
+		tilt.tokens = 0;
+		tilt.lastUpdate = Date.now();
+		return;
+	}
+
+	if (result === "LOST") {
+		tilt.tokens = Math.min(tilt.tokens + 1, 10); // cap at 10
+		tilt.lastUpdate = Date.now();
+	}
+}
+
 async function pollPlayer(tag, nick) {
 	const res = await fetch(`${baseURL}${encodeTag(tag)}/battlelog`, {
 		headers: { Authorization: `Bearer ${apiKey}` },
@@ -46,10 +75,10 @@ async function pollPlayer(tag, nick) {
 
 	let player = jsonDB.tracked[tag];
 	if (!player) {
-		player = { name: nick };
+		player = { name: nick, tilt: { tokens: 0, lastUpdate: 0 } };
 		jsonDB.tracked[tag] = player;
 	}
-
+	if (!player.tilt) player.tilt = { tokens: 0, lastUpdate: 0 };
 	const MIN_NOTIFICATION_INTERVAL = 10 * 60 * 1000;
 	let shouldNotify = true;
 	if (player.lastNotified) {
@@ -76,8 +105,6 @@ async function pollPlayer(tag, nick) {
 	if (shouldNotify) {
 		player.lastNotified = timestamp;
 	}
-	// save DB
-	fs.writeFileSync(dbPath, JSON.stringify(jsonDB, null, 2));
 
 	const lostOrWon =
 		recentBattle.team[0].crowns < recentBattle.opponent[0].crowns
@@ -91,6 +118,11 @@ async function pollPlayer(tag, nick) {
 		? recentBattle.team[0].trophyChange
 		: undefined;
 	// return info for announcements
+	updateTiltBucket(player, lostOrWon);
+	const tiltMsg = checkTiltMessages(player, player.discordId);
+	// save DB
+	fs.writeFileSync(dbPath, JSON.stringify(jsonDB, null, 2));
+
 	return {
 		tag,
 		name: player.name,
@@ -100,6 +132,7 @@ async function pollPlayer(tag, nick) {
 		score,
 		...(trophyChange !== undefined && { trophyChange }),
 		shouldNotify,
+		tiltMsg,
 	};
 }
 

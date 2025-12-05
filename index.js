@@ -43,55 +43,49 @@ async function pollLoop(channel) {
 	while (true) {
 		try {
 			for (const tag in trackedPlayers) {
-				const nick = trackedPlayers[tag];
-				const newBattle = await pollPlayer(tag, nick);
+				const { nick, discordId } = trackedPlayers[tag];
+				const userMention = `<@${discordId}>`;
+
+				//const nick = trackedPlayers[tag];
+				const newBattle = await pollPlayer(tag, nick, discordId);
+				if (!newBattle) continue;
 				if (newBattle) {
 					// always announce the battle
+					if (!newBattle.tilt)
+						newBattle.tilt = { tokens: 0, lastUpdate: 0 };
+
+					if (newBattle.lostOrWon === "WON") {
+						newBattle.tilt.tokens = 0;
+						newBattle.tilt.lastUpdate = Date.now();
+					} else if (newBattle.lostOrWon === "LOST") {
+						newBattle.tilt.tokens = Math.min(
+							newBattle.tilt.tokens + 1,
+							10
+						);
+						newBattle.tilt.lastUpdate = Date.now();
+					}
 					let msg = `${nick} played a **${newBattle.gameMode}** match! **${newBattle.lostOrWon}** *${newBattle.score}*`;
 
 					if (newBattle.trophyChange) {
 						msg += ` | ${newBattle.trophyChange} 🏆`;
 					}
+					let tiltMsg = null;
+					if (newBattle.tilt.tokens === 3)
+						tiltMsg = `${userMention} hey… 3 losses? maybe take a break 😭`;
+					else if (newBattle.tilt.tokens === 6)
+						tiltMsg = `${userMention} 6 losses… put the phone down.?`;
+					else if (newBattle.tilt.tokens === 10)
+						tiltMsg = `${userMention} https://media1.tenor.com/m/IzOuqn6WwSMAAAAd/jamie-carragher-football-meme.gif`;
+
 					// ping only if 10 minutes passed
 					if (newBattle.shouldNotify) {
-						let mention = "";
 						//msg = `<@762388297825124402> ` + msg;
-						switch (nick) {
-							case "Peemus":
-								mention = `<@&1428112134121721917>`;
-								break;
-							case "Benis":
-								mention = `<@&1428112405053051035>`;
-								break;
-							case "Niggey":
-								mention = `<@&1428112345582014655>`;
-								break;
-							case "Maj":
-								mention = `<@&1428112576721584281>`;
-								break;
-							case "Sena":
-								mention = `<@&1428112458719166555>`;
-								break;
-							case "Dev":
-								mention = `<@&1428112500951486597>`;
-								break;
-							case "Rebel":
-								mention = `<@&1428112981673246751>`;
-								break;
-							case "Ace":
-								mention = `<@&1428112891378143292>`;
-								break;
-							case "Brockor":
-								mention = `<@&1428112659181469878>`;
-								break;
-							default:
-								mention = `<@&1416840325422518322>`;
-								break;
-						}
-						msg = mention + " " + msg;
+
+						msg = userMention + " " + msg;
 					}
 
 					await channel.send(msg);
+					if (tiltMsg) await channel.send(tiltMsg);
 				}
 
 				await new Promise((r) => setTimeout(r, 2000));

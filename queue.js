@@ -11,15 +11,16 @@ const oldTrackedPlayers = {
 };
 
 const trackedPlayers = {
-	"#V0GJRGV0Q": { nick: "Peemus", discordId: "1428112134121721917" },
+	"#V0GJRGV0Q": { nick: "Peemus", discordId: "1258569815639982227" },
 	"#C890U22V": { nick: "Benis", discordId: "762388297825124402" },
-	"#JVQGQLR8R": { nick: "Niggey", discordId: "1428112345582014655" },
-	"#9GG0JLVJ": { nick: "Maj", discordId: "1428112576721584281" },
+	"#JVQGQLR8R": { nick: "Niggey", discordId: "984912239817547846" },
+	"#9GG0JLVJ": { nick: "Maj", discordId: "1107835130845859850" },
 	"#R8YQR0V9R": { nick: "Sena", discordId: "1428112458719166555" },
-	"#QY090G0YG": { nick: "Dev", discordId: "1428112500951486597" },
-	"#YU2GQ2V": { nick: "Rebel", discordId: "1428112981673246751" },
-	"#Y9CV9RUJL": { nick: "Ace", discordId: "1428112891378143292" },
-	"#V8CJ2JPPY": { nick: "Brockor", discordId: "1428112659181469878" },
+	"#QY090G0YG": { nick: "Dev", discordId: "214476053626880002" },
+
+	"#YU2GQ2V": { nick: "Rebel", discordId: "855366064397746186" },
+	"#Y9CV9RUJL": { nick: "Ace", discordId: "1052578665034158080" },
+	"#V8CJ2JPPY": { nick: "Brockor", discordId: "873691825322467430" },
 };
 
 module.exports = trackedPlayers;

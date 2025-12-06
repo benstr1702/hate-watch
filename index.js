@@ -52,34 +52,12 @@ async function pollLoop(channel) {
 				if (!newBattle) continue;
 				if (newBattle) {
 					// always announce the battle
-					if (!newBattle.tilt)
-						newBattle.tilt = { tokens: 0, lastUpdate: 0 };
-
-					if (newBattle.lostOrWon === "WON") {
-						newBattle.tilt.tokens = 0;
-						newBattle.tilt.lastUpdate = Date.now();
-					} else if (newBattle.lostOrWon === "LOST") {
-						newBattle.tilt.tokens = Math.min(
-							newBattle.tilt.tokens + 1,
-							10
-						);
-						newBattle.tilt.lastUpdate = Date.now();
-					}
 					let msg = `${nick} played a **${newBattle.gameMode}** match! **${newBattle.lostOrWon}** *${newBattle.score}*`;
 
 					if (newBattle.trophyChange) {
 						msg += ` | ${newBattle.trophyChange} 🏆`;
 					}
-					let tiltMsg = null;
 					let roleMention = "";
-					if (newBattle.tilt.tokens === 3)
-						tiltMsg = `${userMention} hey… 3 losses? maybe take a break 😭`;
-					else if (newBattle.tilt.tokens === 6)
-						tiltMsg = `${userMention} 6 losses… put the phone down.?`;
-					else if (newBattle.tilt.tokens === 10)
-						tiltMsg = `${userMention} https://media1.tenor.com/m/IzOuqn6WwSMAAAAd/jamie-carragher-football-meme.gif`;
-
-					// ping only if 10 minutes passed
 					switch (nick) {
 						case "Peemus":
 							roleMention = `<@&1428112134121721917>`;
@@ -120,7 +98,8 @@ async function pollLoop(channel) {
 					}
 
 					await channel.send(msg);
-					if (tiltMsg) await channel.send(tiltMsg);
+					if (newBattle.tiltMsg)
+						await channel.send(newBattle.tiltMsg);
 				}
 
 				await new Promise((r) => setTimeout(r, 2000));

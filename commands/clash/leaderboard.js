@@ -65,7 +65,7 @@ module.exports = {
 			const results = [];
 
 			for (const tag in trackedPlayers) {
-				const nick = trackedPlayers[tag];
+				const nick = trackedPlayers[tag].nick;
 
 				let res;
 				try {
